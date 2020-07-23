@@ -56,7 +56,13 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  //load emails
+  load_emails(mailbox);
   
+}
+
+function load_emails(mailbox) {
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
@@ -65,53 +71,7 @@ function load_mailbox(mailbox) {
       element.innerHTML = `Sender: ${emails[i].sender} Subject: ${emails[i].subject} Date: ${emails[i].timestamp}`;
       element.classList.add("email");
       element.setAttribute("data-id",`${emails[i].id}`)
-      element.addEventListener('click', function() {
-        document.querySelector('#emails-view').style.display = 'none';
-        document.querySelector('#content-view').style.display = 'block';
-        document.querySelector('#compose-view').style.display = 'none';
-        
-        console.log('This element has been clicked!')
-        fetch(`/emails/${element.dataset.id}`)
-        .then(response => response.json())
-        .then(email => {
-          
-          const sender = document.createElement('div');
-          sender.innerHTML = `From: ${email.sender}`;
-          document.querySelector('#content-view').append(sender);
-
-          const recipients = document.createElement('div');
-          const people = email.recipients;
-          const peopleList = people.join(', ');
-          recipients.innerHTML = `To: ${peopleList}`;
-          document.querySelector('#content-view').append(recipients);
-
-          const subject = document.createElement('div');
-          subject.innerHTML = `Subject: ${email.subject}`;
-          document.querySelector('#content-view').append(subject);
-
-          const timestamp = document.createElement('div');
-          timestamp.innerHTML = `Time: ${email.timestamp}`;
-          document.querySelector('#content-view').append(timestamp);
-
-          const body = document.createElement('div');
-          body.innerHTML = `${email.body}`;
-          document.querySelector('#content-view').append(body);
-          
-        })
-        .catch(error =>{
-          console.log('Error:', error);
-        });
-
-        fetch(`/emails/${element.dataset.id}`, {
-          method: 'PUT',
-          body: JSON.stringify({
-            read: true
-          })
-        });
-
-        return false;
-
-    });
+      element.addEventListener('click', () => load_email(`${element.dataset.id}`));
 
       document.querySelector('#emails-view').append(element);
     }
@@ -129,47 +89,11 @@ function load_mailbox(mailbox) {
   return false;
 }
 
-function load_email(emails) {
-  fetch(`/emails/${mailbox}`)
-  .then(response => response.json())
-  .then(emails => {
-    for (i = 0; i < emails.length; i++){
-      const element = document.createElement('div');
-      element.innerHTML = `Sender: ${emails[i].sender} Subject: ${emails[i].subject} Date: ${emails[i].timestamp}`;
-      element.classList.add("email");
-      element.setAttribute("data-id",`${emails[i].id}`)
-      element.addEventListener('click', function() {
-        document.querySelector('#emails-view').style.display = 'none';
-        document.querySelector('#content-view').style.display = 'block';
-        document.querySelector('#compose-view').style.display = 'none';
-        
-        console.log('This element has been clicked!')
-        fetch(`/emails/${element.dataset.id}`)
-        .then(response => response.json())
-        .then(email => {
-          
-          load_email(email);
-
-    });
-
-      document.querySelector('#emails-view').append(element);
-    }
-
-    let x = document.querySelectorAll(".email");
-    for (let i = 0; i < x.length; i++) {
-      x[i].style.border = "1px solid black";
-    }
-
-    console.log(emails)
-  })
-  .catch(error =>{
-    console.log('Error:',error);
-  });
-  return false;
-}
-
-function load_email(email) {
-  fetch(`/emails/${element.dataset.id}`)
+function load_email(id) {
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#content-view').style.display = 'block';
+  document.querySelector('#compose-view').style.display = 'none';
+  fetch(`/emails/${id}`)
   .then(response => response.json())
   .then(email => {
     const sender = document.createElement('div');
@@ -198,7 +122,7 @@ function load_email(email) {
     console.log('Error:', error);
   });
 
-  fetch(`/emails/${element.dataset.id}`, {
+  fetch(`/emails/${id}`, {
     method: 'PUT',
     body: JSON.stringify({
       read: true
